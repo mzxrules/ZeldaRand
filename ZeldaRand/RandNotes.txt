@@ -1,0 +1,38 @@
+﻿800CDC90 //Generate Next Random Number
+//V0 = randomly generated number
+//http://en.wikipedia.org/wiki/Linear_congruential_generator
+DC90 LUI	A0, 0x8010
+DC94 ADDIU	A0, A0, 0x5440
+DC98 LW 	V1, 0x0000(A0) //V1 = RNG seed
+DC9C LUI	AT, 0x0019
+DCA0 ORI	AT, AT, 0x660D //AT = 1664525, multiplier
+DCA4 MULTU	V1, AT
+DCA8 LUI	AT, 0x3C6E
+DCAC ORI	AT, AT, 0xF35F //AT = 1013904223, increment
+DCB0 MFLO	V1 //V1 = mult lo
+DCB4 ADDU	V0, V1, AT //V0 = new seed
+DCB8 JR 	RA
+DCBC SW 	V0, 0x0000(A0) //store seed
+
+
+800CDCCC //Generates a random number between 0 inclusive and 1 exclusive
+F0 = Value between 0 and 1
+
+DCCC ADDIU	SP, SP, 0xFFE0
+DCD0 SW 	RA, 0x0014(SP)
+DCD4 JAL	800CDC90 //Generate next number
+DCD8 NOP
+DCDC LUI	AT, 0x007F
+DCE0 ORI	AT, AT, 0xFFFF
+DCE4 AND	T6, V0, AT //low 23 bits of our RNG
+DCE8 LUI	AT, 0x3F80 //AT = 1.0 as float
+DCEC OR 	T7, T6, AT //T7 = Random number between 1 and just under 2
+DCF0 SW 	T7, 0x001C(SP)
+DCF4 LWC1	F4, 0x001C(SP)
+//Essentially, F4 is set to a random float between 1 and just under 2
+DCF8 MTC1	AT, F6 //F6 = 1.0
+DCFC LW 	RA, 0x0014(SP)
+DD00 ADDIU	SP, SP, 0x0020
+DD04 SUB.S	F2, F4, F6//F2 = random num between 0 and 1
+DD08 JR 	RA
+DD0C MOV.S	F0, F2
